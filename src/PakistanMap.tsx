@@ -11,6 +11,9 @@ import maplibregl, { type Map } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import pakistanGeoJSON from "./pakistan.json";
+import indiaGeoJSON from "./india.json";
+import afghanistanGeoJSON from "./afghanistan.json";
+import iranGeoJSON from "./iran.json";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "700", "900"],
@@ -19,15 +22,41 @@ const { fontFamily } = loadFont("normal", {
 
 const PAKISTAN_CENTER: [number, number] = [69.3451, 30.3753];
 const GLOBE_CENTER: [number, number] = [55.0, 20.0];
+const BORDER_FOCUS_CENTER: [number, number] = [73.5, 30.5];
+const INDIA_CENTER: [number, number] = [78.9629, 22.5937];
+const WESTERN_CENTER: [number, number] = [62.0, 32.0];
 
-// Helper to draw a star
+// Custom Radcliffe Line coordinates
+const PARTITION_BORDER_GEOJSON = {
+  type: "Feature",
+  geometry: {
+    type: "LineString",
+    coordinates: [
+      [68.16, 23.63],
+      [69.60, 24.50],
+      [70.3, 26.0],
+      [71.5, 27.8],
+      [72.3, 28.5],
+      [73.5, 29.8],
+      [74.3, 31.0],
+      [74.6, 32.5],
+      [74.3, 33.5],
+      [75.0, 34.2],
+      [76.0, 34.6],
+      [77.0, 34.8],
+    ],
+  },
+};
+
+// Canvas drawing utilities
 const drawStar = (
   ctx: CanvasRenderingContext2D,
   cx: number,
   cy: number,
   spikes: number,
   outerRadius: number,
-  innerRadius: number
+  innerRadius: number,
+  color: string = "#ffffff"
 ) => {
   let rot = (Math.PI / 2) * 3;
   let x = cx;
@@ -49,50 +78,148 @@ const drawStar = (
   }
   ctx.lineTo(cx, cy - outerRadius);
   ctx.closePath();
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = color;
   ctx.fill();
 };
 
-// Draw Pakistan flag dynamically on a canvas
 const getPakistanFlagBase64 = (): string => {
   if (typeof document === "undefined") return "";
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 384;
+  canvas.width = 256;
+  canvas.height = 192;
   const ctx = canvas.getContext("2d");
   if (!ctx) return "";
 
   const w = canvas.width;
   const h = canvas.height;
 
-  // Dark green background (official shade: #01411C)
   ctx.fillStyle = "#01411C";
   ctx.fillRect(0, 0, w, h);
 
-  // White stripe on the left (1/4 of width)
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w / 4, h);
 
-  // Center of green part (3/4 of width)
   const greenW = (3 * w) / 4;
   const centerX = w / 4 + greenW / 2;
   const centerY = h / 2;
 
-  // Crescent circle (white)
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.arc(centerX, centerY, h * 0.28, 0, 2 * Math.PI);
   ctx.fill();
 
-  // Crescent cutout (green)
   ctx.fillStyle = "#01411C";
   ctx.beginPath();
-  // Offset slightly top-right to form crescent shape
   ctx.arc(centerX + h * 0.08, centerY - h * 0.05, h * 0.26, 0, 2 * Math.PI);
   ctx.fill();
 
-  // White 5-pointed star
   drawStar(ctx, centerX + h * 0.14, centerY - h * 0.1, 5, h * 0.09, h * 0.04);
+  return canvas.toDataURL();
+};
+
+const getIndiaFlagBase64 = (): string => {
+  if (typeof document === "undefined") return "";
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 170;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const stripeH = h / 3;
+
+  ctx.fillStyle = "#FF9933";
+  ctx.fillRect(0, 0, w, stripeH);
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, stripeH, w, stripeH);
+
+  ctx.fillStyle = "#138808";
+  ctx.fillRect(0, stripeH * 2, w, stripeH);
+
+  const cx = w / 2;
+  const cy = h / 2;
+  const radius = stripeH * 0.4;
+  ctx.strokeStyle = "#000080";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+  ctx.stroke();
+
+  ctx.fillStyle = "#000080";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.15, 0, 2 * Math.PI);
+  ctx.fill();
+
+  for (let i = 0; i < 24; i++) {
+    const angle = (i * 2 * Math.PI) / 24;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+    ctx.stroke();
+  }
+
+  return canvas.toDataURL();
+};
+
+const getAfghanistanFlagBase64 = (): string => {
+  if (typeof document === "undefined") return "";
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 170;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const colW = w / 3;
+
+  ctx.fillStyle = "#000000";
+  ctx.fillRect(0, 0, colW, h);
+
+  ctx.fillStyle = "#D32011";
+  ctx.fillRect(colW, 0, colW, h);
+
+  ctx.fillStyle = "#007A33";
+  ctx.fillRect(colW * 2, 0, colW, h);
+
+  // Simplified national emblem shape in center (white outline)
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, h * 0.18, 0, Math.PI, true);
+  ctx.stroke();
+
+  return canvas.toDataURL();
+};
+
+const getIranFlagBase64 = (): string => {
+  if (typeof document === "undefined") return "";
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 146;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "";
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const stripeH = h / 3;
+
+  ctx.fillStyle = "#239E46";
+  ctx.fillRect(0, 0, w, stripeH);
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, stripeH, w, stripeH);
+
+  ctx.fillStyle = "#DA0000";
+  ctx.fillRect(0, stripeH * 2, w, stripeH);
+
+  // Simplified red emblem shape in center
+  ctx.fillStyle = "#DA0000";
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, stripeH * 0.4, 0, 2 * Math.PI);
+  ctx.fill();
 
   return canvas.toDataURL();
 };
@@ -103,7 +230,7 @@ export const PakistanMap: React.FC = () => {
   const { delayRender, continueRender } = useDelayRender();
   const { width, height } = useVideoConfig();
   const [map, setMap] = useState<Map | null>(null);
-  const [loadingHandle] = useState(() => delayRender("Loading Pakistan Map"));
+  const [loadingHandle] = useState(() => delayRender("Loading Maps Environment"));
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -122,127 +249,353 @@ export const PakistanMap: React.FC = () => {
     });
 
     mapInstance.on("load", () => {
-      const flagBase64 = getPakistanFlagBase64();
-      const img = new window.Image();
-      img.onload = () => {
-        if (!mapInstance.hasImage("pak-flag-pattern")) {
-          mapInstance.addImage("pak-flag-pattern", img);
-        }
+      // 1. Prepare flags base64
+      const pakFlag = getPakistanFlagBase64();
+      const indFlag = getIndiaFlagBase64();
+      const afgFlag = getAfghanistanFlagBase64();
+      const irnFlag = getIranFlagBase64();
 
-        // Add Pakistan GeoJSON source
-        mapInstance.addSource("pakistan-boundary", {
+      const imagesToLoad = [
+        { name: "pattern-pak", src: pakFlag },
+        { name: "pattern-ind", src: indFlag },
+        { name: "pattern-afg", src: afgFlag },
+        { name: "pattern-irn", src: irnFlag },
+      ];
+
+      let loadedCount = 0;
+      imagesToLoad.forEach((imgObj) => {
+        const img = new window.Image();
+        img.onload = () => {
+          mapInstance.addImage(imgObj.name, img);
+          loadedCount++;
+          if (loadedCount === imagesToLoad.length) {
+            setupLayers();
+          }
+        };
+        img.src = imgObj.src;
+      });
+
+      function setupLayers() {
+        // Pakistan Source & Layers
+        mapInstance.addSource("source-pakistan", {
           type: "geojson",
           data: pakistanGeoJSON as any,
         });
-
-        // 1. Pakistan flag fill layer
         mapInstance.addLayer({
-          id: "pak-flag-fill",
+          id: "fill-pakistan",
           type: "fill",
-          source: "pakistan-boundary",
+          source: "source-pakistan",
+          paint: { "fill-pattern": "pattern-pak", "fill-opacity": 0 },
+        });
+        mapInstance.addLayer({
+          id: "border-pakistan",
+          type: "line",
+          source: "source-pakistan",
+          paint: { "line-color": "#ffffff", "line-width": 4, "line-opacity": 0 },
+        });
+
+        // Partition Border Line Source & Layers
+        mapInstance.addSource("source-radcliffe", {
+          type: "geojson",
+          data: PARTITION_BORDER_GEOJSON as any,
+        });
+        // Broad red blur to represent lack of natural defenses
+        mapInstance.addLayer({
+          id: "glow-radcliffe",
+          type: "line",
+          source: "source-radcliffe",
           paint: {
-            "fill-pattern": "pak-flag-pattern",
-            "fill-opacity": 0,
+            "line-color": "#ff0000",
+            "line-width": 35,
+            "line-blur": 15,
+            "line-opacity": 0,
+          },
+        });
+        // Bold red line representing Radcliffe Line
+        mapInstance.addLayer({
+          id: "line-radcliffe",
+          type: "line",
+          source: "source-radcliffe",
+          paint: {
+            "line-color": "#ff3333",
+            "line-width": 6,
+            "line-opacity": 0,
           },
         });
 
-        // 2. Bold white border layer
+        // India Source & Layers
+        mapInstance.addSource("source-india", {
+          type: "geojson",
+          data: indiaGeoJSON as any,
+        });
         mapInstance.addLayer({
-          id: "pak-border",
+          id: "fill-india",
+          type: "fill",
+          source: "source-india",
+          paint: { "fill-pattern": "pattern-ind", "fill-opacity": 0 },
+        });
+        mapInstance.addLayer({
+          id: "border-india",
           type: "line",
-          source: "pakistan-boundary",
-          paint: {
-            "line-color": "#ffffff",
-            "line-width": 5,
-            "line-opacity": 0,
-          },
+          source: "source-india",
+          paint: { "line-color": "#ffffff", "line-width": 5, "line-opacity": 0 },
+        });
+
+        // Afghanistan Source & Layers
+        mapInstance.addSource("source-afghanistan", {
+          type: "geojson",
+          data: afghanistanGeoJSON as any,
+        });
+        mapInstance.addLayer({
+          id: "fill-afghanistan",
+          type: "fill",
+          source: "source-afghanistan",
+          paint: { "fill-pattern": "pattern-afg", "fill-opacity": 0 },
+        });
+        mapInstance.addLayer({
+          id: "border-afghanistan",
+          type: "line",
+          source: "source-afghanistan",
+          paint: { "line-color": "#ffffff", "line-width": 4, "line-opacity": 0 },
+        });
+
+        // Iran Source & Layers
+        mapInstance.addSource("source-iran", {
+          type: "geojson",
+          data: iranGeoJSON as any,
+        });
+        mapInstance.addLayer({
+          id: "fill-iran",
+          type: "fill",
+          source: "source-iran",
+          paint: { "fill-pattern": "pattern-irn", "fill-opacity": 0 },
+        });
+        mapInstance.addLayer({
+          id: "border-iran",
+          type: "line",
+          source: "source-iran",
+          paint: { "line-color": "#ffffff", "line-width": 4, "line-opacity": 0 },
         });
 
         mapInstance.once("idle", () => {
           setMap(mapInstance);
           continueRender(loadingHandle);
         });
-      };
-      img.src = flagBase64;
+      }
     });
   }, [continueRender, loadingHandle]);
 
-  // Per-frame map animations
+  // Per-frame map and camera animations
   useEffect(() => {
     if (!map) return;
 
-    const handle = delayRender("Rendering Pakistan Map frame");
+    const handle = delayRender("Rendering current frame");
 
-    // Camera fly-in animation (frame 20 -> 90)
     let center = GLOBE_CENTER;
     let zoom = 1.5;
     let pitch = 0;
+    let bearing = 0;
 
-    if (frame > 20 && frame <= 90) {
-      const progress = interpolate(frame, [20, 90], [0, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.bezier(0.25, 1, 0.3, 1), // Swift ease-out
-      });
+    let borderPakOpacity = 0;
+    let fillPakOpacity = 0;
 
-      const lng = interpolate(progress, [0, 1], [GLOBE_CENTER[0], PAKISTAN_CENTER[0]]);
-      const lat = interpolate(progress, [0, 1], [GLOBE_CENTER[1], PAKISTAN_CENTER[1]]);
-      center = [lng, lat];
+    let borderIndOpacity = 0;
+    let fillIndOpacity = 0;
 
-      zoom = interpolate(progress, [0, 1], [1.5, 5.5]);
-      pitch = interpolate(progress, [0, 1], [0, 20]);
-    } else if (frame > 90) {
-      center = PAKISTAN_CENTER;
-      zoom = 5.5;
-      pitch = 20;
+    let borderAfgOpacity = 0;
+    let fillAfgOpacity = 0;
+
+    let borderIrnOpacity = 0;
+    let fillIrnOpacity = 0;
+
+    let radcliffeOpacity = 0;
+
+    // --- SCENE SEQUENCING SYSTEM ---
+
+    // SCENE 1: Globe to Pakistan Zoom-in (Frames 0 -> 90)
+    if (frame <= 90) {
+      if (frame > 20) {
+        const progress = interpolate(frame, [20, 80], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+          easing: Easing.bezier(0.25, 1, 0.3, 1),
+        });
+        center = [
+          interpolate(progress, [0, 1], [GLOBE_CENTER[0], PAKISTAN_CENTER[0]]),
+          interpolate(progress, [0, 1], [GLOBE_CENTER[1], PAKISTAN_CENTER[1]]),
+        ];
+        zoom = interpolate(progress, [0, 1], [1.5, 5.5]);
+        pitch = interpolate(progress, [0, 1], [0, 20]);
+      } else {
+        center = GLOBE_CENTER;
+        zoom = 1.5;
+      }
+
+      // Draw outline (80 -> 90)
+      borderPakOpacity = interpolate(frame, [60, 80], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      fillPakOpacity = interpolate(frame, [75, 90], [0, 0.85], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
     }
 
-    // Bold white outline animation (frame 80 -> 110)
-    let borderOpacity = 0;
-    if (frame > 80 && frame <= 110) {
-      borderOpacity = interpolate(frame, [80, 110], [0, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      });
-    } else if (frame > 110) {
-      borderOpacity = 1;
-    }
+    // SCENE 2: Border Focus & Radcliffe Line (Frames 90 -> 180)
+    else if (frame > 90 && frame <= 180) {
+      borderPakOpacity = 1;
+      fillPakOpacity = 0.85;
 
-    // Flag fill animation (frame 105 -> 140)
-    let flagOpacity = 0;
-    if (frame > 105 && frame <= 140) {
-      flagOpacity = interpolate(frame, [105, 140], [0, 0.85], {
+      // Swift pan and tilt focus to the border
+      const progress = interpolate(frame, [90, 110], [0, 1], {
         extrapolateLeft: "clamp",
         extrapolateRight: "clamp",
         easing: Easing.out(Easing.quad),
       });
-    } else if (frame > 140) {
-      flagOpacity = 0.85;
+
+      center = [
+        interpolate(progress, [0, 1], [PAKISTAN_CENTER[0], BORDER_FOCUS_CENTER[0]]),
+        interpolate(progress, [0, 1], [PAKISTAN_CENTER[1], BORDER_FOCUS_CENTER[1]]),
+      ];
+      zoom = interpolate(progress, [0, 1], [5.5, 6.8]);
+      pitch = interpolate(progress, [0, 1], [20, 50]);
+      bearing = interpolate(progress, [0, 1], [0, 35]);
+
+      // Radcliffe outline & Glow reveal (110 -> 145)
+      radcliffeOpacity = interpolate(frame, [110, 140], [0, 0.8], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      });
     }
 
-    map.setPaintProperty("pak-border", "line-opacity", borderOpacity);
-    map.setPaintProperty("pak-flag-fill", "fill-opacity", flagOpacity);
+    // SCENE 3: India Focus & Military Pulse (Frames 180 -> 300)
+    else if (frame > 180 && frame <= 300) {
+      borderPakOpacity = 1;
+      fillPakOpacity = 0.85;
+
+      // Shift camera eastward to India
+      const progress = interpolate(frame, [180, 210], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: Easing.bezier(0.25, 1, 0.3, 1),
+      });
+
+      const baseCenter: [number, number] = [
+        interpolate(progress, [0, 1], [BORDER_FOCUS_CENTER[0], INDIA_CENTER[0]]),
+        interpolate(progress, [0, 1], [BORDER_FOCUS_CENTER[1], INDIA_CENTER[1]]),
+      ];
+
+      pitch = interpolate(progress, [0, 1], [50, 15]);
+      bearing = interpolate(progress, [0, 1], [35, 0]);
+
+      // Fast zoom-in/out pulse effect (Frames 220 -> 280)
+      let pulseZoom = interpolate(progress, [0, 1], [6.8, 4.4]);
+      if (frame > 220 && frame <= 280) {
+        // Oscillating pulse values to visualize conflict tension
+        const t = (frame - 220) / 60; // 0 to 1
+        const wave = Math.sin(t * Math.PI * 3); // 3 complete cycles
+        pulseZoom = 4.4 + wave * 0.45;
+      }
+      zoom = pulseZoom;
+      center = baseCenter;
+
+      // Reveal India outline and fill
+      borderIndOpacity = interpolate(frame, [200, 220], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      fillIndOpacity = interpolate(frame, [215, 235], [0, 0.8], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+    }
+
+    // SCENE 4: Pan Westward to Afghanistan & Iran (Frames 300 -> 420)
+    else if (frame > 300) {
+      borderPakOpacity = 1;
+      fillPakOpacity = 0.85;
+      borderIndOpacity = 1;
+      fillIndOpacity = 0.8;
+
+      // Pan camera westward
+      const progress = interpolate(frame, [300, 335], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+        easing: Easing.bezier(0.25, 1, 0.3, 1),
+      });
+
+      center = [
+        interpolate(progress, [0, 1], [INDIA_CENTER[0], WESTERN_CENTER[0]]),
+        interpolate(progress, [0, 1], [INDIA_CENTER[1], WESTERN_CENTER[1]]),
+      ];
+      zoom = interpolate(progress, [0, 1], [4.4, 4.1]);
+      pitch = interpolate(progress, [0, 1], [15, 30]);
+      bearing = interpolate(progress, [0, 1], [0, -10]);
+
+      // Outline and fill Afghanistan (330 -> 365)
+      borderAfgOpacity = interpolate(frame, [325, 345], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      fillAfgOpacity = interpolate(frame, [335, 360], [0, 0.75], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+      // Outline and fill Iran (360 -> 395)
+      borderIrnOpacity = interpolate(frame, [355, 375], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      fillIrnOpacity = interpolate(frame, [365, 390], [0, 0.75], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+    }
+
+    // Apply computed map properties
+    map.setPaintProperty("border-pakistan", "line-opacity", borderPakOpacity);
+    map.setPaintProperty("fill-pakistan", "fill-opacity", fillPakOpacity);
+
+    map.setPaintProperty("glow-radcliffe", "line-opacity", radcliffeOpacity * 0.45);
+    map.setPaintProperty("line-radcliffe", "line-opacity", radcliffeOpacity);
+
+    map.setPaintProperty("border-india", "line-opacity", borderIndOpacity);
+    map.setPaintProperty("fill-india", "fill-opacity", fillIndOpacity);
+
+    map.setPaintProperty("border-afghanistan", "line-opacity", borderAfgOpacity);
+    map.setPaintProperty("fill-afghanistan", "fill-opacity", fillAfgOpacity);
+
+    map.setPaintProperty("border-iran", "line-opacity", borderIrnOpacity);
+    map.setPaintProperty("fill-iran", "fill-opacity", fillIrnOpacity);
 
     map.jumpTo({
       center,
       zoom,
       pitch,
+      bearing,
     });
 
     map.once("idle", () => continueRender(handle));
     map.triggerRepaint();
   }, [frame, map, delayRender, continueRender]);
 
-  // HUD and title opacity transitions
-  const headerOpacity = interpolate(frame, [10, 30], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const hudOpacity = interpolate(frame, [100, 120], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // UI HUD Info Titles & Descriptions
+  let title = "Islamic Republic of Pakistan";
+  let subtitle = "Global Map Fly-In";
+  let description = "Entering geographical viewport centered on South Asia.";
+  let badgeColor = "#ffffff";
+  let badgeText = "PAKISTAN";
+
+  if (frame > 90 && frame <= 180) {
+    title = "Radcliffe Partition Line";
+    subtitle = "Vulnerable Frontier Border";
+    description = "Tracing the 2,912 KM border with India. Red highlights indicate flat agricultural plains completely lacking natural defensive barriers.";
+    badgeColor = "#ff3333";
+    badgeText = "BORDER DANGER ZONE";
+  } else if (frame > 180 && frame <= 300) {
+    title = "Subcontinent Rivals";
+    subtitle = "Republic of India";
+    description = "Pulsing viewport represents active border skirmishes, territorial friction points, and historic conflicts defining the bilateral relationship.";
+    badgeColor = "#FF9933";
+    badgeText = "RIVALRY & FRICTION";
+  } else if (frame > 300) {
+    title = "Western Frontiers";
+    subtitle = "Afghanistan & Iran Boundaries";
+    description = "Panning westward to reveal regional neighbors. Bold borders outline geopolitical buffer sectors along the western mountain ranges.";
+    badgeColor = "#007A33";
+    badgeText = "REGIONAL PERSPECTIVE";
+  }
+
+  // General fade-in transition for the HUD panels
+  const panelOpacity = interpolate(frame, [10, 30], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   return (
     <AbsoluteFill style={{ fontFamily, backgroundColor: "#080612", overflow: "hidden" }}>
-      {/* MapLibre Canvas Container */}
+      {/* Map Canvas */}
       <div ref={containerRef} style={{ width, height, position: "absolute" }} />
 
-      {/* Grid overlay for tech look */}
+      {/* Futuristic Overlay Grid */}
       <div
         style={{
           position: "absolute",
@@ -251,15 +604,15 @@ export const PakistanMap: React.FC = () => {
           width: "100%",
           height: "100%",
           backgroundImage: `
-            linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+            linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px)
           `,
-          backgroundSize: "50px 50px",
+          backgroundSize: "60px 60px",
           pointerEvents: "none",
         }}
       />
 
-      {/* Vignette */}
+      {/* Cinematic Vignette */}
       <div
         style={{
           position: "absolute",
@@ -267,122 +620,96 @@ export const PakistanMap: React.FC = () => {
           left: 0,
           width: "100%",
           height: "100%",
-          background: "radial-gradient(circle, transparent 40%, rgba(8, 6, 18, 0.9) 100%)",
+          background: "radial-gradient(circle, transparent 35%, rgba(8, 6, 18, 0.95) 100%)",
           pointerEvents: "none",
         }}
       />
 
-      {/* Floating Header (Top Left) */}
+      {/* Top HUD Display Info Panel */}
       <div
         style={{
           position: "absolute",
           top: 80,
           left: 80,
-          background: "rgba(8, 6, 18, 0.8)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(255, 255, 255, 0.15)",
-          padding: "24px 40px",
-          borderRadius: 16,
-          boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
-          opacity: headerOpacity,
-          zIndex: 100,
-        }}
-      >
-        <span
-          style={{
-            color: "#ffffff",
-            fontSize: 20,
-            fontWeight: 900,
-            letterSpacing: "0.25em",
-            textTransform: "uppercase",
-          }}
-        >
-          GLOBAL MAP ZOOM
-        </span>
-        <h2 style={{ margin: "8px 0 0 0", fontSize: 44, fontWeight: 700, color: "#ffffff" }}>
-          Islamic Republic of Pakistan
-        </h2>
-      </div>
-
-      {/* Info Card Overlay (Bottom Right) */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 80,
-          right: 80,
-          width: 480,
+          width: 580,
           background: "rgba(8, 6, 18, 0.85)",
           backdropFilter: "blur(20px)",
-          border: "2px solid #ffffff", // White accent border
+          border: `1px solid rgba(255, 255, 255, 0.15)`,
+          padding: "32px 40px",
           borderRadius: 24,
-          padding: 40,
-          boxShadow: "0 30px 60px rgba(0,0,0,0.6)",
-          opacity: hudOpacity,
+          boxShadow: "0 25px 50px rgba(0,0,0,0.6)",
+          opacity: panelOpacity,
           zIndex: 100,
           display: "flex",
           flexDirection: "column",
-          gap: 16,
+          gap: 8,
+          transition: "border-color 0.5s ease",
         }}
       >
         <span
           style={{
-            color: "#01411C",
-            background: "#ffffff",
+            color: badgeColor === "#ffffff" ? "#080612" : "#ffffff",
+            background: badgeColor,
             padding: "4px 12px",
             borderRadius: 6,
             fontSize: 16,
             fontWeight: 900,
             alignSelf: "flex-start",
-            letterSpacing: "0.1em",
+            letterSpacing: "0.15em",
           }}
         >
-          PAKISTAN
+          {badgeText}
         </span>
-        <h3
+        <h2
           style={{
-            margin: 0,
-            fontSize: 36,
-            fontWeight: 700,
+            margin: "8px 0 0 0",
+            fontSize: 40,
+            fontWeight: 900,
             color: "#ffffff",
-            lineHeight: 1.2,
+            lineHeight: 1.1,
           }}
         >
-          National Boundary
-        </h3>
+          {title}
+        </h2>
+        <span style={{ fontSize: 22, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>
+          {subtitle}
+        </span>
         <p
           style={{
-            margin: 0,
-            fontSize: 22,
+            margin: "12px 0 0 0",
+            fontSize: 19,
             lineHeight: 1.6,
-            color: "rgba(255,255,255,0.75)",
+            color: "rgba(255, 255, 255, 0.75)",
           }}
         >
-          Located at the crossroads of South Asia, Central Asia, and the Middle East, spanning a diverse landscape of peaks and coastlines.
+          {description}
         </p>
+      </div>
+
+      {/* Tech corner accents representing active capture */}
+      <div
+        style={{
+          position: "absolute",
+          top: 40,
+          right: 40,
+          fontFamily: "monospace",
+          fontSize: 16,
+          color: "rgba(255,255,255,0.4)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
         <div
           style={{
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-            paddingTop: 15,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            fontSize: 18,
-            fontFamily: "monospace",
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            backgroundColor: "#ff3333",
+            animation: "pulse 1s infinite alternate",
           }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>Capital</span>
-            <span style={{ color: "#ffffff", fontWeight: 700 }}>Islamabad</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>Total Area</span>
-            <span style={{ color: "#ffffff", fontWeight: 700 }}>796,095 km²</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>Center Coordinates</span>
-            <span style={{ color: "#ffffff", fontWeight: 700 }}>30.3753° N, 69.3451° E</span>
-          </div>
-        </div>
+        />
+        SYS.CAPTURE: ACTIVE [F_{frame}]
       </div>
     </AbsoluteFill>
   );

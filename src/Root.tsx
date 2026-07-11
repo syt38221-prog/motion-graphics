@@ -25,7 +25,7 @@ export const RemotionRoot = () => {
       <Composition
         id="PakistanMap"
         component={PakistanMap}
-        durationInFrames={180} // 6 seconds at 30 fps
+        durationInFrames={420} // 14 seconds at 30 fps
         fps={30}
         width={1920}
         height={1080}
