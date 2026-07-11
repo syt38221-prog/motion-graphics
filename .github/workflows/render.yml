@@ -30,11 +30,16 @@ jobs:
           # Remotion has a helper command to ensure all browser dependencies are installed
           npx remotion browser install
 
-      - name: Render Video
+      - name: Render Main Video
         run: npx remotion render Main out/video.mp4 --no-sandbox
 
-      - name: Upload Video Artifact
+      - name: Render Military Map Video
+        run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
+
+      - name: Upload Video Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: remotion-video
-          path: out/video.mp4
+          path: |
+            out/video.mp4
+            out/military_map.mp4
