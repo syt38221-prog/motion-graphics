@@ -1,0 +1,7 @@
+node_modules
+build
+out
+.DS_Store
+.agents
+.env
+.env.local

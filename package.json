@@ -1,0 +1,24 @@
+{
+  "name": "remotion-motion-graphics",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render Main out/video.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.487",
+    "@remotion/google-fonts": "4.0.487",
+    "@remotion/media": "4.0.487",
+    "@turf/turf": "^7.3.5",
+    "maplibre-gl": "^5.24.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "remotion": "4.0.487"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

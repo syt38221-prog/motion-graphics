@@ -1,0 +1,40 @@
+name: Render Remotion Video
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  render:
+    name: Render Video on Cloud
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chrome dependencies (for Headless Puppeteer)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgbm-dev wget gnupg
+          # Remotion has a helper command to ensure all browser dependencies are installed
+          npx remotion browser install
+
+      - name: Render Video
+        run: npx remotion render Main out/video.mp4 --no-sandbox
+
+      - name: Upload Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: remotion-video
+          path: out/video.mp4
