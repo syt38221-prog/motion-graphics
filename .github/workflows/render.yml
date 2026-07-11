@@ -19,16 +19,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
+
+      - name: Cache Remotion Browser
+        id: cache-remotion-browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/remotion
+          key: ${{ runner.os }}-remotion-browser
 
       - name: Install Chrome dependencies (for Headless Puppeteer)
         run: |
           sudo apt-get update
           sudo apt-get install -y libgbm-dev wget gnupg
-          # Remotion has a helper command to ensure all browser dependencies are installed
-          npx remotion browser install
+
+      - name: Install Remotion Browser
+        if: steps.cache-remotion-browser.outputs.cache-hit != 'true'
+        run: npx remotion browser install
 
       - name: Render Main Video
         run: npx remotion render Main out/video.mp4 --no-sandbox
