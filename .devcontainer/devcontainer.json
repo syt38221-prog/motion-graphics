@@ -1,0 +1,17 @@
+{
+  "name": "Remotion Codespace",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/chrome-dependencies:1": {}
+  },
+  "postCreateCommand": "npm install && npx remotion browser install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "forwardPorts": [3000]
+}
