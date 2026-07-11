@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
 import { Main } from "./Main";
 import { MilitaryMap } from "./MilitaryMap";
+import { PakistanMap } from "./PakistanMap";
 
 export const RemotionRoot = () => {
   return (
@@ -17,6 +18,14 @@ export const RemotionRoot = () => {
         id="MilitaryMap"
         component={MilitaryMap}
         durationInFrames={300} // 10 seconds at 30 fps
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="PakistanMap"
+        component={PakistanMap}
+        durationInFrames={180} // 6 seconds at 30 fps
         fps={30}
         width={1920}
         height={1080}

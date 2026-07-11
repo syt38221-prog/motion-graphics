@@ -54,6 +54,9 @@ jobs:
       - name: Render Military Map Video
         run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
 
+      - name: Render Pakistan Map Video
+        run: npx remotion render PakistanMap out/pakistan_map.mp4 --no-sandbox
+
       - name: Upload Video Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -61,3 +64,4 @@ jobs:
           path: |
             out/video.mp4
             out/military_map.mp4
+            out/pakistan_map.mp4
