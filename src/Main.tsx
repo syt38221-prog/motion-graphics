@@ -7,13 +7,14 @@ import {
   interpolate,
   Easing,
   staticFile,
+  Sequence,
+  spring,
 } from "remotion";
 import maplibregl, { type Map } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import usStates from "./us-states.json";
 import { US_FLAG_BASE64 } from "./us-flag-base64";
-
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "700", "900"],
@@ -51,7 +52,10 @@ const getShiftedGeoJSON = () => {
 
 const shiftedUsStates = getShiftedGeoJSON();
 
-export const Main: React.FC = () => {
+// ==========================================
+// SCENE 1: Map Zoom and USA-Europe Scale Comparison
+// ==========================================
+const MapScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const frame = useCurrentFrame();
   const { delayRender, continueRender } = useDelayRender();
@@ -441,6 +445,342 @@ export const Main: React.FC = () => {
           </div>
         </div>
       </div>
+    </AbsoluteFill>
+  );
+};
+
+// ==========================================
+// SCENE 2: NATO Troops Marching under US Command
+// ==========================================
+const MarchingScene: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  // Displacement wave animation values for waving flag
+  const dx = frame * 3.5;
+  const dy = Math.sin(frame * 0.08) * 12;
+
+  // Spring animation for typography entering the screen
+  const textSpring = spring({
+    frame: frame - 15,
+    fps: 30,
+    config: { damping: 14, mass: 0.8 },
+  });
+
+  const textOpacity = interpolate(frame, [10, 25], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  const textTranslateY = interpolate(textSpring, [0, 1], [40, 0]);
+
+  // Animated marching positions
+  // Foreground Row (marching left to right)
+  const fgX = interpolate(frame, [0, 180], [-800, -200]);
+  const fgBob = Math.abs(Math.sin(frame * 0.2)) * 14;
+  const fgRot = Math.sin(frame * 0.2) * 1.5;
+
+  // Midground Row (offset slightly, marching slower)
+  const mgX = interpolate(frame, [0, 180], [-550, -50]);
+  const mgBob = Math.abs(Math.sin((frame + 12) * 0.18)) * 11;
+  const mgRot = Math.sin((frame + 12) * 0.18) * 1.2;
+
+  // Background Row (further back, slower)
+  const bgX = interpolate(frame, [0, 180], [-300, 100]);
+  const bgBob = Math.abs(Math.sin((frame + 24) * 0.16)) * 9;
+  const bgRot = Math.sin((frame + 24) * 0.16) * 0.9;
+
+  return (
+    <AbsoluteFill style={{ fontFamily, backgroundColor: "#080612", overflow: "hidden" }}>
+      {/* SVG Displacement Filter for Waving Flag */}
+      <svg style={{ position: "absolute", width: 0, height: 0 }}>
+        <defs>
+          <filter id="flag-wave-filter">
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.012 0.04"
+              numOctaves="2"
+              result="noise"
+            />
+            <feOffset dx={dx} dy={dy} result="offsetNoise" />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="offsetNoise"
+              scale={50}
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Waving US Flag Background */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-5%",
+          left: "-5%",
+          width: "110%",
+          height: "110%",
+          filter: "url(#flag-wave-filter) brightness(0.3) contrast(1.1)",
+        }}
+      >
+        <img
+          src={staticFile("waving-us-flag.jpg")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          alt="Waving US Flag"
+        />
+      </div>
+
+      {/* Grid overlay for tactical/HUD theme */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundImage: `
+            linear-gradient(to right, rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 242, 254, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: "45px 45px",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Vignette */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          background: "radial-gradient(circle, transparent 20%, rgba(8, 6, 18, 0.95) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Background Row of Troops (Smallest, furthest back) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 220,
+          left: bgX,
+          width: 2800,
+          height: 380,
+          transform: `translateY(${bgBob}px) rotate(${bgRot}deg)`,
+          opacity: 0.3,
+          mixBlendMode: "multiply",
+        }}
+      >
+        <img
+          src={staticFile("nato-troops.jpg")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          alt="NATO Troops Background"
+        />
+      </div>
+
+      {/* Midground Row of Troops (Medium size) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 100,
+          left: mgX,
+          width: 2900,
+          height: 440,
+          transform: `translateY(${mgBob}px) rotate(${mgRot}deg)`,
+          opacity: 0.55,
+          mixBlendMode: "multiply",
+        }}
+      >
+        <img
+          src={staticFile("nato-troops.jpg")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          alt="NATO Troops Midground"
+        />
+      </div>
+
+      {/* Foreground Row of Troops (Largest, front row) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: -40,
+          left: fgX,
+          width: 3000,
+          height: 520,
+          transform: `translateY(${fgBob}px) rotate(${fgRot}deg)`,
+          opacity: 0.9,
+          mixBlendMode: "multiply",
+        }}
+      >
+        <img
+          src={staticFile("nato-troops.jpg")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          alt="NATO Troops Foreground"
+        />
+      </div>
+
+      {/* HUD Details (Top Left) */}
+      <div
+        style={{
+          position: "absolute",
+          top: 60,
+          left: 80,
+          display: "flex",
+          alignItems: "center",
+          gap: 24,
+          opacity: textOpacity,
+        }}
+      >
+        {/* NATO Star Emblem SVG */}
+        <div style={{ filter: "drop-shadow(0 0 12px rgba(0, 242, 254, 0.6))" }}>
+          <svg viewBox="0 0 100 100" style={{ width: 90, height: 90, fill: "none" }}>
+            <circle cx="50" cy="50" r="36" stroke="rgba(0, 242, 254, 0.4)" strokeWidth={2} />
+            <circle cx="50" cy="50" r="16" stroke="rgba(0, 242, 254, 0.6)" strokeWidth={1.5} />
+            <path d="M 50 14 L 54 46 L 86 50 L 54 54 L 50 86 L 46 54 L 14 50 L 46 46 Z" fill="#00f2fe" />
+            <line x1="50" y1="4" x2="50" y2="96" stroke="#00f2fe" strokeWidth={1.5} strokeDasharray="3 3" />
+            <line x1="4" y1="50" x2="96" y2="50" stroke="#00f2fe" strokeWidth={1.5} strokeDasharray="3 3" />
+          </svg>
+        </div>
+        <div>
+          <span
+            style={{
+              color: "#00f2fe",
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: "0.25em",
+              textTransform: "uppercase",
+            }}
+          >
+            Allied Command Europe
+          </span>
+          <h2 style={{ margin: "4px 0 0 0", fontSize: 36, fontWeight: 700, color: "#ffffff" }}>
+            Supreme Headquarters
+          </h2>
+        </div>
+      </div>
+
+      {/* Title & Command Overlay (Center Right / Floating Card) */}
+      <div
+        style={{
+          position: "absolute",
+          top: "30%",
+          right: 100,
+          width: 580,
+          background: "rgba(8, 6, 18, 0.85)",
+          backdropFilter: "blur(20px)",
+          border: "2px solid rgba(0, 242, 254, 0.3)",
+          borderRadius: 24,
+          padding: 40,
+          boxShadow: "0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(0, 242, 254, 0.05)",
+          opacity: textOpacity,
+          transform: `translate3d(0, ${textTranslateY}px, 0)`,
+          zIndex: 100,
+        }}
+      >
+        <span
+          style={{
+            color: "#00f2fe",
+            fontSize: 20,
+            fontWeight: 900,
+            letterSpacing: "0.15em",
+          }}
+        >
+          TACTICAL ALLIANCE
+        </span>
+        <h3
+          style={{
+            margin: "8px 0 16px 0",
+            fontSize: 42,
+            fontWeight: 700,
+            color: "#ffffff",
+            lineHeight: 1.2,
+          }}
+        >
+          Unified Forces
+        </h3>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 24,
+            lineHeight: 1.6,
+            color: "rgba(255,255,255,0.75)",
+          }}
+        >
+          Under unified American leadership, allied NATO formations stand synchronized, representing global force projection and collective security.
+        </p>
+      </div>
+
+      {/* Tactical Status Panel (Bottom Left) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 80,
+          left: 80,
+          background: "rgba(8, 6, 18, 0.75)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          padding: "16px 28px",
+          borderRadius: 12,
+          display: "flex",
+          alignItems: "center",
+          gap: 20,
+          opacity: textOpacity,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              backgroundColor: "#ffd700",
+              boxShadow: "0 0 8px #ffd700",
+            }}
+          />
+          <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 18, letterSpacing: "0.05em" }}>
+            JOINT COMMAND: ACTIVE
+          </span>
+        </div>
+        <div style={{ width: 1, height: 20, backgroundColor: "rgba(255,255,255,0.2)" }} />
+        <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 18 }}>
+          FORCE SYNC: 100%
+        </span>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ==========================================
+// ORCHESTRATOR COMPONENT
+// ==========================================
+export const Main: React.FC = () => {
+  const frame = useCurrentFrame();
+
+  // Transition fade at frame 270 -> 285 (0.5 second transition)
+  const scene2Opacity = interpolate(frame, [270, 285], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: "#080612" }}>
+      {/* Map Scene is active for the first 285 frames */}
+      {frame < 285 && (
+        <Sequence from={0} durationInFrames={285}>
+          <MapScene />
+        </Sequence>
+      )}
+
+      {/* NATO Troops Scene is active starting from frame 270 */}
+      {frame >= 270 && (
+        <Sequence from={270} durationInFrames={180}>
+          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: scene2Opacity }}>
+            <MarchingScene />
+          </div>
+        </Sequence>
+      )}
     </AbsoluteFill>
   );
 };
