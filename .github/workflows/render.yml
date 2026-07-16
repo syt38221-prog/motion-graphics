@@ -48,14 +48,14 @@ jobs:
         if: steps.cache-remotion-browser.outputs.cache-hit != 'true'
         run: npx remotion browser install
 
-#      - name: Render Main Video
-#        run: npx remotion render Main out/video.mp4 --no-sandbox
+      - name: Render Main Video
+        run: npx remotion render Main out/video.mp4 --no-sandbox
 
-#      - name: Render Military Map Video
-#        run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
+      - name: Render Military Map Video
+        run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
 
-#      - name: Render Pakistan Map Video
-#        run: npx remotion render PakistanMap out/pakistan_map.mp4 --no-sandbox
+      - name: Render Pakistan Map Video
+        run: npx remotion render PakistanMap out/pakistan_map.mp4 --no-sandbox
 
       - name: Render Russian Forest Video
         run: npx remotion render RussianForest out/russian_forest.mp4 --no-sandbox
@@ -65,4 +65,7 @@ jobs:
         with:
           name: remotion-video
           path: |
+            out/video.mp4
+            out/military_map.mp4
+            out/pakistan_map.mp4
             out/russian_forest.mp4
