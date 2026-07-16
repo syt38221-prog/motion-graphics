@@ -2,6 +2,7 @@ import { Composition } from "remotion";
 import { Main } from "./Main";
 import { MilitaryMap } from "./MilitaryMap";
 import { PakistanMap } from "./PakistanMap";
+import { RussianForest } from "./RussianForest";
 
 export const RemotionRoot = () => {
   return (
@@ -26,6 +27,14 @@ export const RemotionRoot = () => {
         id="PakistanMap"
         component={PakistanMap}
         durationInFrames={420} // 14 seconds at 30 fps
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="RussianForest"
+        component={RussianForest}
+        durationInFrames={150} // 5 seconds at 30 fps
         fps={30}
         width={1920}
         height={1080}
