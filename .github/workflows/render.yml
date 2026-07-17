@@ -15,22 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Cache Node Modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
 
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
+        run: bun install
 
       - name: Cache Remotion Browser
         id: cache-remotion-browser
@@ -46,7 +35,7 @@ jobs:
 
       - name: Install Remotion Browser
         if: steps.cache-remotion-browser.outputs.cache-hit != 'true'
-        run: npx remotion browser install
+        run: bunx remotion browser install
 
 #      - name: Render Main Video
 #        run: npx remotion render Main out/video.mp4 --no-sandbox
@@ -55,7 +44,7 @@ jobs:
 #        run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
 
       - name: Render Pakistan Map Video
-        run: npx remotion render PakistanMap out/pakistan_map.mp4 --no-sandbox
+        run: bunx remotion render PakistanMap out/pakistan_map.mp4 --no-sandbox
 
 #      - name: Render Russian Forest Video
 #        run: npx remotion render RussianForest out/russian_forest.mp4 --no-sandbox
