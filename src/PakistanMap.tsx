@@ -377,10 +377,17 @@ export const PakistanMap: React.FC = () => {
           paint: { "line-color": "#ffffff", "line-width": 4, "line-opacity": 0 },
         });
 
-        mapInstance.once("idle", () => {
-          setMap(mapInstance);
-          continueRender(loadingHandle);
-        });
+        let initialLoaded = false;
+        const finishInitialLoad = () => {
+          if (!initialLoaded) {
+            initialLoaded = true;
+            setMap(mapInstance);
+            continueRender(loadingHandle);
+          }
+        };
+        mapInstance.once("idle", finishInitialLoad);
+        mapInstance.once("render", finishInitialLoad);
+        setTimeout(finishInitialLoad, 5000); // 5 second failsafe for initial load
       }
     });
   }, [continueRender, loadingHandle]);
@@ -553,7 +560,16 @@ export const PakistanMap: React.FC = () => {
       bearing,
     });
 
-    map.once("idle", () => continueRender(handle));
+    let frameRendered = false;
+    const finishFrame = () => {
+      if (!frameRendered) {
+        frameRendered = true;
+        continueRender(handle);
+      }
+    };
+    
+    map.once("idle", finishFrame);
+    setTimeout(finishFrame, 800); // 800ms failsafe for frame rendering
     map.triggerRepaint();
   }, [frame, map, delayRender, continueRender]);
 
