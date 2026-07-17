@@ -39,7 +39,7 @@ export const RussianForest: React.FC = () => {
           width: "100%",
           height: "100%",
           transform: `scale(${scale}) translateY(${translateY}px)`,
-          backgroundImage: `url(${staticFile("russian_forest_dawn.jpg")})`,
+          backgroundImage: `url(${staticFile("russian_forest_3d.jpg")})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
