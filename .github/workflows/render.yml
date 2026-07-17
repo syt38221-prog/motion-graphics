@@ -15,6 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install System Dependencies (unzip, Chrome libs)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip libgbm-dev wget gnupg
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
@@ -27,11 +32,6 @@ jobs:
         with:
           path: ~/.cache/remotion
           key: ${{ runner.os }}-remotion-browser
-
-      - name: Install Chrome dependencies (for Headless Puppeteer)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgbm-dev wget gnupg
 
       - name: Install Remotion Browser
         if: steps.cache-remotion-browser.outputs.cache-hit != 'true'
