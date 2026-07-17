@@ -9,7 +9,7 @@ on:
 jobs:
   render:
     name: Render Video on Cloud
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
