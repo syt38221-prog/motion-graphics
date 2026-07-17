@@ -44,7 +44,7 @@ jobs:
 #        run: npx remotion render MilitaryMap out/military_map.mp4 --no-sandbox
 
       - name: Render Documentary Video
-        run: bunx remotion render Documentary out/documentary.mp4 --no-sandbox
+        run: bunx remotion render Documentary out/documentary.mp4 --no-sandbox --concurrency=1 --gl=swiftshader
 
 #      - name: Render Russian Forest Video
 #        run: bunx remotion render RussianForest out/russian_forest.mp4 --no-sandbox
