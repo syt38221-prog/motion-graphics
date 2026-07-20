@@ -421,8 +421,9 @@ export const PakistanMap: React.FC = () => {
 
     // SCENE 1: Globe to Pakistan Zoom-in (Frames 0 -> 90)
     if (frame <= 90) {
-      if (frame > 20) {
-        const progress = interpolate(frame, [20, 80], [0, 1], {
+      if (frame > 10) {
+        // Faster zoom in
+        const progress = interpolate(frame, [10, 60], [0, 1], {
           extrapolateLeft: "clamp",
           extrapolateRight: "clamp",
           easing: Easing.bezier(0.25, 1, 0.3, 1),
@@ -431,16 +432,18 @@ export const PakistanMap: React.FC = () => {
           interpolate(progress, [0, 1], [GLOBE_CENTER[0], PAKISTAN_CENTER[0]]),
           interpolate(progress, [0, 1], [GLOBE_CENTER[1], PAKISTAN_CENTER[1]]),
         ];
-        zoom = interpolate(progress, [0, 1], [1.5, 5.5]);
-        pitch = interpolate(progress, [0, 1], [0, 20]);
+        // Closer zoom from wide to close
+        zoom = interpolate(progress, [0, 1], [1.5, 6.5]);
+        pitch = interpolate(progress, [0, 1], [0, 30]);
       } else {
         center = GLOBE_CENTER;
         zoom = 1.5;
       }
 
-      // Draw outline (80 -> 90)
-      borderPakOpacity = interpolate(frame, [60, 80], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-      fillPakOpacity = interpolate(frame, [75, 90], [0, 0.85], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      // Draw outline during the zoom (40 -> 60)
+      borderPakOpacity = interpolate(frame, [40, 60], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+      // Animate flag fill right as zoom finishes (55 -> 75)
+      fillPakOpacity = interpolate(frame, [55, 75], [0, 0.85], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
     }
 
     // SCENE 2: Border Focus & Radcliffe Line (Frames 90 -> 180)
